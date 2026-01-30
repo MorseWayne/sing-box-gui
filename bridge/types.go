@@ -89,6 +89,7 @@ type AppConfig struct {
 	MultipleInstance bool `yaml:"multipleInstance"`
 	RollingRelease   bool `yaml:"rollingRelease" default:"true"`
 	StartHidden      bool
+	ExitCoreOnShutdown bool `yaml:"closeKernelOnExit"`
 }
 
 type TrayContent struct {

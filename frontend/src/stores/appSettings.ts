@@ -5,6 +5,7 @@ import { parse, stringify } from 'yaml'
 import {
   ReadFile,
   WriteFile,
+  ReloadAppConfig,
   WindowSetSystemDefaultTheme,
   WindowIsMaximised,
   WindowIsMinimised,
@@ -102,7 +103,9 @@ export const useAppSettingsStore = defineStore('app-settings', () => {
   })
 
   const saveAppSettings = debounce((config: string) => {
-    WriteFile(UserFilePath, config)
+    WriteFile(UserFilePath, config).then(() => {
+      ReloadAppConfig()
+    })
   }, 500)
 
   const setupAppSettings = async () => {
@@ -145,7 +148,7 @@ export const useAppSettingsStore = defineStore('app-settings', () => {
     },
     color(color: Color, primary: string, secondary: string) {
       if (color !== Color.Custom) {
-        ;({ primary, secondary } = Colors[color] ?? { primary, secondary })
+        ; ({ primary, secondary } = Colors[color] ?? { primary, secondary })
       }
       document.documentElement.style.setProperty('--primary-color', primary)
       document.documentElement.style.setProperty('--secondary-color', secondary)

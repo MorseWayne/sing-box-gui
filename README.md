@@ -17,10 +17,28 @@ Sing-Box-GUI 旨在提供一个简洁、高效且美观的 Sing-Box 核心管理
 
 在开始编译之前，请确保您的开发环境已安装以下工具：
 
-- **Go** (1.20+)
+- **Go** (1.24+)
 - **Node.js** (LTS)
 - **pnpm** (`npm i -g pnpm`)
 - **Wails CLI** (`go install github.com/wailsapp/wails/v2/cmd/wails@latest`)
+
+### 系统依赖 (仅 Linux 用户)
+
+如果您在 Linux (如 Ubuntu) 上进行编译，需要安装相关的库：
+
+- **Ubuntu 24.04+**:
+
+  ```bash
+  sudo apt update
+  sudo apt install libgtk-3-dev libwebkit2gtk-4.1-dev
+  ```
+
+- **Ubuntu 22.04及以下**:
+
+  ```bash
+  sudo apt update
+  sudo apt install libgtk-3-dev libwebkit2gtk-4.0-dev
+  ```
 
 ### 编译步骤
 
@@ -31,19 +49,22 @@ Sing-Box-GUI 旨在提供一个简洁、高效且美观的 Sing-Box 核心管理
    cd sing-box-gui
    ```
 
-2. **前端依赖安装** (可选，wails build 过程中会自动执行)
+2. **执行编译**
+
+   根据您的目标平台，运行对应的编译命令：
 
    ```bash
-   cd frontend
-   pnpm install
-   cd ..
-   ```
-
-3. **执行编译**
-
-   ```bash
-   # 直接编译生成可执行文件
+   # 编译当前平台版本
    wails build
+
+   # 编译 Windows 64位版本 (支持交叉编译)
+   wails build -platform windows/amd64
+
+   # 编译 macOS 版本 (需要 macOS 环境)
+   wails build -platform darwin/universal
+
+   # 编译 Linux 64位版本
+   wails build -platform linux/amd64
    ```
 
 编译完成后，生成的可执行文件将位于 `build/bin` 目录下。

@@ -12,7 +12,7 @@ import {
   connectWebsocket,
   disconnectWebsocket,
 } from '@/api/kernel'
-import { ProcessInfo, KillProcess, ExecBackground, ReadFile, RemoveFile, WriteFile } from '@/bridge'
+import { ProcessInfo, ReadFile, RemoveFile, WriteFile, StartCore, StopCore, EventsOn, EventsOnce } from '@/bridge'
 import {
   CoreConfigFilePath,
   CorePidFilePath,
@@ -244,32 +244,46 @@ export const useKernelApiStore = defineStore('kernelApi', () => {
     } else if (appSettingsStore.app.autoStartKernel) {
       await startCore()
     }
+
+    // Setup Global Core Listeners
+    EventsOn('core-log', (logs: string) => {
+      logsStore.recordKernelLog(logs)
+    })
+
+    EventsOn('core-stopped', (msg: string) => {
+      logger.log(`[Core] Stopped: ${msg}`)
+      if (running.value) {
+        onCoreStopped()
+      }
+    })
   }
 
   const runCoreProcess = (isAlpha: boolean) => {
-    return new Promise<number | void>((resolve, reject) => {
-      let output: string
-      const pid = ExecBackground(
+    return new Promise<number>((resolve, reject) => {
+
+      const startEventPromise = new Promise<void>((res) => {
+        EventsOnce('core-started', res)
+      })
+
+      EventsOnce('core-start-failed', (err: string) => {
+        reject(err)
+      })
+
+      StartCore(
         CoreWorkingDirectory + '/' + getKernelFileName(isAlpha),
         getKernelRuntimeArgs(isAlpha),
-        (out) => {
-          output = out
-          logsStore.recordKernelLog(out)
-          if (out.includes(CoreStopOutputKeyword)) {
-            resolve(pid)
-          }
-        },
-        () => {
-          onCoreStopped()
-          reject(output)
-        },
         {
           PidFile: CorePidFilePath,
           StopOutputKeyword: CoreStopOutputKeyword,
           Env: getKernelRuntimeEnv(isAlpha),
           LogFile: CoreWorkingDirectory + '/core.log',
         },
-      ).catch((e) => reject(e))
+      ).then(async (pid) => {
+        await startEventPromise
+        resolve(pid)
+      }).catch((e) => {
+        reject(e)
+      })
     })
   }
 
@@ -349,7 +363,7 @@ export const useKernelApiStore = defineStore('kernelApi', () => {
     try {
       logger.log('Stopping core...')
       await pluginsStore.onBeforeCoreStopTrigger()
-      await KillProcess(corePid.value)
+      await StopCore()
       await (isCoreStartedByThisInstance ? coreStoppedPromise : onCoreStopped())
       logger.log('Core stopped successfully.')
     } catch (error: any) {

@@ -102,6 +102,10 @@ export function ReadFile(arg1, arg2) {
   return window['go']['bridge']['App']['ReadFile'](arg1, arg2);
 }
 
+export function ReloadAppConfig() {
+  return window['go']['bridge']['App']['ReloadAppConfig']();
+}
+
 export function RemoveFile(arg1) {
   return window['go']['bridge']['App']['RemoveFile'](arg1);
 }
@@ -118,8 +122,16 @@ export function ShowMainWindow() {
   return window['go']['bridge']['App']['ShowMainWindow']();
 }
 
+export function StartCore(arg1, arg2, arg3) {
+  return window['go']['bridge']['App']['StartCore'](arg1, arg2, arg3);
+}
+
 export function StartServer(arg1, arg2, arg3) {
   return window['go']['bridge']['App']['StartServer'](arg1, arg2, arg3);
+}
+
+export function StopCore() {
+  return window['go']['bridge']['App']['StopCore']();
 }
 
 export function StopServer(arg1) {

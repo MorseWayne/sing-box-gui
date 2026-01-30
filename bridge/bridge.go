@@ -27,7 +27,7 @@ var Env = &EnvResult{
 	FromTaskSch:  false,
 	WebviewPath:  "",
 	AppName:      "",
-	AppVersion:   "v1.19.0",
+	AppVersion:   "v0.9.0",
 	BasePath:     "",
 	OS:           sysruntime.GOOS,
 	ARCH:         sysruntime.GOARCH,
@@ -263,4 +263,10 @@ func loadConfig() {
 	if !Env.FromTaskSch {
 		Config.WindowStartState = int(options.Normal)
 	}
+}
+
+func (a *App) ReloadAppConfig() FlagResult {
+	loadConfig()
+	log.Printf("AppConfig reloaded. ExitCoreOnShutdown: %v", Config.ExitCoreOnShutdown)
+	return FlagResult{true, "Success"}
 }

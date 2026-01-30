@@ -87,6 +87,9 @@ func main() {
 			runtime.EventsEmit(ctx, "onBeforeExitApp")
 			return true
 		},
+		OnShutdown: func(ctx context.Context) {
+			bridge.Cleanup()
+		},
 		Bind: []any{
 			app,
 		},

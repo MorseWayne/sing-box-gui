@@ -52,6 +52,8 @@ export function ReadDir(arg1:string):Promise<bridge.FlagResult>;
 
 export function ReadFile(arg1:string,arg2:bridge.IOOptions):Promise<bridge.FlagResult>;
 
+export function ReloadAppConfig():Promise<bridge.FlagResult>;
+
 export function RemoveFile(arg1:string):Promise<bridge.FlagResult>;
 
 export function Requests(arg1:string,arg2:string,arg3:Record<string, string>,arg4:string,arg5:bridge.RequestOptions):Promise<bridge.HTTPResult>;
@@ -60,7 +62,11 @@ export function RestartApp():Promise<bridge.FlagResult>;
 
 export function ShowMainWindow():Promise<void>;
 
+export function StartCore(arg1:string,arg2:Array<string>,arg3:bridge.ExecOptions):Promise<bridge.FlagResult>;
+
 export function StartServer(arg1:string,arg2:string,arg3:bridge.ServerOptions):Promise<bridge.FlagResult>;
+
+export function StopCore():Promise<bridge.FlagResult>;
 
 export function StopServer(arg1:string):Promise<bridge.FlagResult>;
 
