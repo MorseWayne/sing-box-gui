@@ -8,6 +8,7 @@ interface ExecOptions {
   Convert?: boolean
   Env?: Record<string, any>
   StopOutputKeyword?: string
+  LogFile?: string
   convert?: boolean
   env?: Record<string, any>
   stopOutputKeyword?: string
@@ -19,6 +20,7 @@ const mergeExecOptions = (options: ExecOptions) => {
     Convert: options.Convert ?? options.convert ?? false,
     Env: options.Env ?? options.env ?? {},
     StopOutputKeyword: options.StopOutputKeyword ?? options.stopOutputKeyword ?? '',
+    LogFile: options.LogFile ?? '',
   }
   return mergedExecOpts
 }

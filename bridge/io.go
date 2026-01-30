@@ -85,6 +85,28 @@ func (a *App) WriteFile(path string, content string, options IOOptions) FlagResu
 	return FlagResult{true, "Success"}
 }
 
+func (a *App) AppendFile(path string, content string) FlagResult {
+	log.Printf("AppendFile: %s", path)
+
+	fullPath := GetPath(path)
+
+	if err := os.MkdirAll(filepath.Dir(fullPath), os.ModePerm); err != nil {
+		return FlagResult{false, err.Error()}
+	}
+
+	file, err := os.OpenFile(fullPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return FlagResult{false, err.Error()}
+	}
+	defer file.Close()
+
+	if _, err := file.WriteString(content); err != nil {
+		return FlagResult{false, err.Error()}
+	}
+
+	return FlagResult{true, "Success"}
+}
+
 func (a *App) ReadFile(path string, options IOOptions) FlagResult {
 	log.Printf("ReadFile [%s %s]: %s", options.Mode, options.Range, path)
 

@@ -13,6 +13,14 @@ export const WriteFile = async (path: string, content: string, options: IOOption
   return data
 }
 
+export const AppendFile = async (path: string, content: string) => {
+  const { flag, data } = await App.AppendFile(path, content)
+  if (!flag) {
+    throw data
+  }
+  return data
+}
+
 export const ReadFile = async (path: string, options: IOOptions = {}) => {
   const { flag, data } = await App.ReadFile(path, { Mode: 'Text', Range: '', ...options })
   if (!flag) {

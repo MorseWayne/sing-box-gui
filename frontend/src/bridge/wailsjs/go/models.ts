@@ -27,6 +27,7 @@ export namespace bridge {
 	    StopOutputKeyword: string;
 	    Convert: boolean;
 	    Env: Record<string, string>;
+	    LogFile: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ExecOptions(source);
@@ -38,6 +39,7 @@ export namespace bridge {
 	        this.StopOutputKeyword = source["StopOutputKeyword"];
 	        this.Convert = source["Convert"];
 	        this.Env = source["Env"];
+	        this.LogFile = source["LogFile"];
 	    }
 	}
 	export class FlagResult {

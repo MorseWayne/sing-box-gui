@@ -64,13 +64,16 @@ const groups = computed(() => {
           return a.delay - b.delay
         })
 
-      const chains = [group.now]
+      const chains = (group.now ? [group.now] : []).filter(Boolean)
       let tmp = proxies[group.now]
-      while (tmp) {
-        tmp.now && chains.push(tmp.now)
+      while (tmp && tmp.now) {
+        chains.push(tmp.now)
         tmp = proxies[tmp.now]
       }
-      return { ...group, all, chains }
+      const nowProxy = group.now ? proxies[group.now] : undefined
+      const lastHistory = nowProxy?.history?.slice(-1)[0]
+      const nowDelay = lastHistory?.delay || 0
+      return { ...group, all, chains, nowDelay }
     })
 })
 
@@ -242,12 +245,24 @@ onActivated(() => {
           {{ group.type }}
         </span>
         <span> :: </span>
-        <template v-for="(chain, index) in group.chains" :key="chain">
-          <span v-if="index !== 0" style="color: gray"> / </span>
-          <Button type="text" size="small" @click.stop="locateGroup(group, chain)">
-            {{ chain }}
-          </Button>
+        <template v-if="group.chains.length > 0">
+          <template v-for="(chain, index) in group.chains" :key="chain">
+            <span v-if="index !== 0" style="color: gray"> / </span>
+            <Button type="text" size="small" @click.stop="locateGroup(group, chain)">
+              {{ chain }}
+            </Button>
+          </template>
+          <span
+            v-if="group.nowDelay"
+            :style="{ color: delayColor(group.nowDelay) }"
+            class="text-12 ml-4"
+          >
+            {{ group.nowDelay }}ms
+          </span>
         </template>
+        <span v-else class="text-12 opacity-50 italic">
+          ({{ t('common.notTested') }})
+        </span>
       </div>
       <div class="ml-auto flex items-center" @click.stop>
         <Input

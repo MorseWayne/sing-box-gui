@@ -12,7 +12,7 @@ import {
   connectWebsocket,
   disconnectWebsocket,
 } from '@/api/kernel'
-import { ProcessInfo, KillProcess, ExecBackground, ReadFile, RemoveFile } from '@/bridge'
+import { ProcessInfo, KillProcess, ExecBackground, ReadFile, RemoveFile, WriteFile } from '@/bridge'
 import {
   CoreConfigFilePath,
   CorePidFilePath,
@@ -41,6 +41,7 @@ import {
   getKernelRuntimeArgs,
   getKernelRuntimeEnv,
   eventBus,
+  logger,
 } from '@/utils'
 
 import type { CoreApiConfig, CoreApiProxy } from '@/types/kernel'
@@ -266,6 +267,7 @@ export const useKernelApiStore = defineStore('kernelApi', () => {
           PidFile: CorePidFilePath,
           StopOutputKeyword: CoreStopOutputKeyword,
           Env: getKernelRuntimeEnv(isAlpha),
+          LogFile: CoreWorkingDirectory + '/core.log',
         },
       ).catch((e) => reject(e))
     })
@@ -323,12 +325,18 @@ export const useKernelApiStore = defineStore('kernelApi', () => {
 
     starting.value = true
     try {
+      logger.log(`Starting core with profile: ${profile.name} (${profile.id})`)
       await generateConfigFile(profile, (config) =>
         pluginsStore.onBeforeCoreStartTrigger(config, profile),
       )
       const isAlpha = branch === Branch.Alpha
       const pid = await runCoreProcess(isAlpha)
       pid && (await onCoreStarted(pid))
+      logger.log(`Core started successfully. PID: ${pid}`)
+    } catch (e: any) {
+      const msg = `Core start error: ${e.message || e}`
+      logger.error(msg)
+      throw e
     } finally {
       starting.value = false
     }
@@ -339,9 +347,14 @@ export const useKernelApiStore = defineStore('kernelApi', () => {
 
     stopping.value = true
     try {
+      logger.log('Stopping core...')
       await pluginsStore.onBeforeCoreStopTrigger()
       await KillProcess(corePid.value)
       await (isCoreStartedByThisInstance ? coreStoppedPromise : onCoreStopped())
+      logger.log('Core stopped successfully.')
+    } catch (error: any) {
+      logger.error(`Core stop error: ${error.message || error}`)
+      throw error
     } finally {
       stopping.value = false
     }
@@ -361,9 +374,9 @@ export const useKernelApiStore = defineStore('kernelApi', () => {
 
   const getProxyPort = ():
     | {
-        port: number
-        proxyType: ProxyType
-      }
+      port: number
+      proxyType: ProxyType
+    }
     | undefined => {
     const { port, 'socks-port': socksPort, 'mixed-port': mixedPort } = config.value
 

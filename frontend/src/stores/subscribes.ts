@@ -9,6 +9,7 @@ import { PluginTriggerEvent, RequestMethod } from '@/enums/app'
 import { usePluginsStore } from '@/stores'
 import {
   sampleID,
+  hashID,
   isValidSubJson,
   isValidSubYAML,
   isValidBase64,
@@ -106,7 +107,7 @@ export const useSubscribesStore = defineStore('subscribes', () => {
       })
       Object.assign(h, s.header.response)
       if (h['Subscription-Userinfo']) {
-        ;(h['Subscription-Userinfo'] as string).split(/\s*;\s*/).forEach((part) => {
+        ; (h['Subscription-Userinfo'] as string).split(/\s*;\s*/).forEach((part) => {
           const [key, value] = part.split('=') as [string, string]
           userInfo[key] = parseInt(value) || 0
         })
@@ -241,7 +242,7 @@ export const useSubscribesStore = defineStore('subscribes', () => {
   const getSubscribeById = (id: string) => subscribes.value.find((v) => v.id === id)
 
   const getSubscribeTemplate = (name = '', options: { url?: string } = {}): Subscription => {
-    const id = sampleID()
+    const id = options.url ? hashID(options.url) : sampleID()
     return {
       id: id,
       name: name,

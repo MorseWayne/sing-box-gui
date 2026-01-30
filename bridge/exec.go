@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -97,6 +98,18 @@ func (a *App) ExecBackground(path string, args []string, outEvent string, endEve
 
 	if outEvent != "" {
 		scanAndEmit := func(reader io.Reader) {
+			var logFile *os.File
+			if options.LogFile != "" {
+				fullPath := GetPath(options.LogFile)
+				if err := os.MkdirAll(filepath.Dir(fullPath), os.ModePerm); err == nil {
+					f, err := os.OpenFile(fullPath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+					if err == nil {
+						logFile = f
+						defer logFile.Close()
+					}
+				}
+			}
+
 			scanner := bufio.NewScanner(reader)
 			stopOutput := false
 			for scanner.Scan() {
@@ -109,6 +122,9 @@ func (a *App) ExecBackground(path string, args []string, outEvent string, endEve
 
 				if !stopOutput {
 					runtime.EventsEmit(a.Ctx, outEvent, text)
+					if logFile != nil {
+						_, _ = logFile.WriteString(text + "\n")
+					}
 
 					if options.StopOutputKeyword != "" && strings.Contains(text, options.StopOutputKeyword) {
 						stopOutput = true

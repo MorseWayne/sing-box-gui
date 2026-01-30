@@ -6,6 +6,10 @@ export function AbsolutePath(arg1) {
   return window['go']['bridge']['App']['AbsolutePath'](arg1);
 }
 
+export function AppendFile(arg1, arg2) {
+  return window['go']['bridge']['App']['AppendFile'](arg1, arg2);
+}
+
 export function CloseMMDB(arg1, arg2) {
   return window['go']['bridge']['App']['CloseMMDB'](arg1, arg2);
 }

@@ -19,7 +19,7 @@ import {
   useRulesetsStore,
   useSubscribesStore,
 } from '@/stores'
-import { deepAssign, deepClone, APP_TITLE, buildSmartRegExp } from '@/utils'
+import { deepAssign, deepClone, APP_TITLE, buildSmartRegExp, logger } from '@/utils'
 
 const _generateRule = (rule: IRule | IDNSRule, rule_set: IRuleSet[], inbounds: IInbound[]) => {
   const getInbound = (id: string) => inbounds.find((v) => v.id === id)?.tag
@@ -67,7 +67,7 @@ const generateInbounds = (inbounds: IInbound[]) => {
   return inbounds.flatMap((inbound) => {
     if (!inbound.enable) return []
     if (inbound.type !== Inbound.Tun) {
-      const users = inbound[inbound.type]!.users.map((user) => ({
+      const users = (inbound[inbound.type]?.users || []).map((user) => ({
         username: user.split(':')[0],
         password: user.split(':')[1],
       }))
@@ -133,26 +133,45 @@ const generateOutbounds = async (outbounds: IOutbound[]) => {
         } else {
           const subId = proxy.type === 'Subscription' ? proxy.id : proxy.type
           if (!SubscriptionCache[subId]) {
-            const sub = subscribesStore.getSubscribeById(subId)
+            let sub = subscribesStore.getSubscribeById(subId)
+            // self-healing: if ID not found, try finding by tag/name
+            if (!sub) {
+              sub = subscribesStore.subscribes.find((v) => v.name === proxy.tag)
+            }
             if (sub) {
-              const subStr = await ReadFile(sub.path)
-              const proxies = JSON.parse(subStr)
-              SubscriptionCache[subId] = proxies
+              try {
+                const subStr = await ReadFile(sub.path)
+                const proxies = JSON.parse(subStr)
+                if (Array.isArray(proxies)) {
+                  SubscriptionCache[subId] = proxies
+                }
+              } catch (e: any) {
+                console.error(`[Generator] Failed to load subscription cache for ${sub.name} (${sub.id}) from ${sub.path}:`, e)
+                logger.error(`[Generator] Failed to load subscription cache for ${sub.name} (${sub.id}) from ${sub.path}: ${e.message || e}`)
+              }
             }
           }
+
+          const proxies = SubscriptionCache[subId]
+          if (!proxies) continue
+
           if (proxy.type === 'Subscription') {
             _outbound.outbounds.push(
-              ...SubscriptionCache[subId]!.map((v) => v.tag).filter((tag) => isTagMatching(tag)),
+              ...proxies.map((v) => v.tag).filter((tag) => isTagMatching(tag)),
             )
-            SubscriptionCache[subId]!.forEach((v) => proxiesSet.add(v))
+            proxies.forEach((v) => proxiesSet.add(v))
           } else {
-            const _proxy = SubscriptionCache[subId]!.find((v) => v.tag === proxy.tag)
+            const _proxy = proxies.find((v) => v.tag === proxy.tag)
             if (_proxy && isTagMatching(_proxy.tag)) {
               _outbound.outbounds.push(_proxy.tag)
               proxiesSet.add(_proxy)
             }
           }
         }
+      }
+      if (_outbound.outbounds.length === 0) {
+        _outbound.outbounds.push(Outbound.Direct)
+        builtInProxiesSet.add(Outbound.Direct)
       }
     }
     result.push(_outbound)
@@ -206,7 +225,7 @@ const generateRoute = (route: IRoute, inbounds: IInbound[], outbounds: IOutbound
       }
       return extra
     }),
-    rule_set: route.rule_set.map((ruleset) => {
+    rule_set: (route.rule_set || []).map((ruleset) => {
       const extra: Recordable = {}
       if (ruleset.type === RuleType.Inline) {
         extra.rules = JSON.parse(ruleset.rules)

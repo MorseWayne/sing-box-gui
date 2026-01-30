@@ -21,6 +21,7 @@ export default {
     enable: '启用',
     use: '使用',
     none: '无',
+    notTested: '未测试',
     close: '关闭',
     reset: '重置',
     pause: '暂停',

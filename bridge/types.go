@@ -39,6 +39,7 @@ type ExecOptions struct {
 	StopOutputKeyword string
 	Convert           bool
 	Env               map[string]string
+	LogFile           string
 }
 
 type Range struct {
