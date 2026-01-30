@@ -63,6 +63,31 @@ func (s *CoreService) Start(app *App, path string, args []string, options ExecOp
 		exePath = path
 	}
 
+	// 1. Check & Kill Existing Process (Orphaned from previous session)
+	if options.PidFile != "" {
+		pidPath := GetPath(options.PidFile)
+		if pidData, err := os.ReadFile(pidPath); err == nil {
+			pidStr := strings.TrimSpace(string(pidData))
+			if pid, err := strconv.Atoi(pidStr); err == nil {
+				if proc, err := os.FindProcess(pid); err == nil {
+					// Check if process is actually running (signal 0 on unix / generic check)
+					// On Windows FindProcess always succeeds. We need to try to kill it or check exit code.
+					// A simple way is just try to kill it. If it fails, maybe it doesn't exist.
+					log.Printf("Found existing orphaned core PID: %d. Killing it...", pid)
+					proc.Kill()
+					// Wait a bit?
+					proc.Wait()
+				}
+			}
+			os.Remove(pidPath)
+		}
+	}
+
+	// 2. Kill by Name (Force clean other instances)
+	// This ensures that even if PID file is missing, we don't start duplicate cores.
+	binaryName := filepath.Base(exePath)
+	killProcessByName(binaryName)
+
 	cmd := exec.Command(exePath, args...)
 	SetCmdWindowHidden(cmd)
 
@@ -265,4 +290,24 @@ func (s *CoreService) emitLogBatch(app *App, logs []string) {
 	// Let's check frontend.
 	data := strings.Join(logs, "\n")
 	runtime.EventsEmit(app.Ctx, "core-log", data)
+}
+
+func killProcessByName(name string) {
+	log.Printf("Ensuring no other instances of %s are running...", name)
+	switch Env.OS {
+	case "windows":
+		// /F = Force, /IM = Image Name
+		exec.Command("taskkill", "/F", "/IM", name).Run()
+	case "darwin", "linux":
+		// Unix-like systems
+		// Use SIGKILL (-9) for force kill
+		// Try pkill first (Process Kill by name pattern, -x for exact)
+		if err := exec.Command("pkill", "-9", "-x", name).Run(); err != nil {
+			// If pkill fails (e.g. command not found or no process), try killall as fallback
+			exec.Command("killall", "-9", name).Run()
+		}
+	default:
+		// Fallback for others (e.g. FreeBSD if supported later), try pkill
+		exec.Command("pkill", "-9", "-x", name).Run()
+	}
 }
