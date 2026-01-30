@@ -1,7 +1,8 @@
 <div align="center">
   <img src="build/appicon.png" alt="GUI.for.SingBox" width="200">
-  <h1>GUI.for.SingBox</h1>
+  <h1>Sing-Box-GUI</h1>
   <p>A GUI program developed by vue3 + wails.</p>
+  <p>本项目参考自 <a href="https://github.com/GUI-for-Cores/GUI.for.SingBox">GUI.for.SingBox</a></p>
 </div>
 
 ## Preview
