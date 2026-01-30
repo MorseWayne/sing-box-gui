@@ -94,8 +94,6 @@ envStore.setupEnv().then(async () => {
   const duration = performance.now() - startTime
   percent.value = duration < 500 ? 80 : 100
 
-  await sleep(Math.max(0, 1000 - duration))
-
   loading.value = false
   kernelApiStore.initCoreState()
 })

@@ -199,6 +199,12 @@ const handleResetMoreSettings = () => {
   message.success('common.success')
 }
 
+const pageMap = ref<Record<string, number>>({})
+
+const loadMore = (groupName: string) => {
+  pageMap.value[groupName] = (pageMap.value[groupName] || 40) + 40
+}
+
 onActivated(() => {
   kernelApiStore.refreshProviderProxies()
 })
@@ -291,52 +297,64 @@ onActivated(() => {
             :class="{ 'action-expand-expanded': isExpanded(group.name) }"
             class="action-expand origin-center duration-200"
             icon="arrowDown"
-          />
+            />
         </Button>
       </div>
     </div>
     <Transition name="expand">
       <div v-if="isExpanded(group.name)" class="py-8 px-4">
         <Empty v-if="group.all.length === 0" />
-        <div
-          v-else-if="appSettings.app.kernel.cardMode"
-          :class="`grid-cols-${appSettings.app.kernel.cardColumns}`"
-          class="grid gap-8"
-        >
-          <Card
-            v-for="proxy in group.all"
-            :key="proxy.name"
-            :title="proxy.name"
-            :selected="proxy.name === group.now"
-            class="cursor-pointer"
-            @click="useProxyWithCatchError(group, proxy)"
-          >
-            <Button
-              :style="{ color: delayColor(proxy.delay) }"
-              :loading="isLoading(proxy.name)"
-              type="text"
-              size="small"
-              style="margin-left: -2px; padding-left: 2px"
-              @click.stop="handleProxyDelay(proxy.name)"
-            >
-              <div class="text-12">
-                {{ proxy.delay && proxy.delay + 'ms' }}
-              </div>
-            </Button>
-            <div class="text-12 my-2">{{ proxy.type }} {{ proxy.udp ? ':: udp' : '' }}</div>
-          </Card>
-        </div>
-        <div v-else class="grid grid-cols-32 gap-8">
+        <div v-else>
           <div
-            v-for="proxy in group.all"
-            :key="proxy.name"
-            v-tips.fast="proxy.name"
-            :style="{ background: delayColor(proxy.delay) }"
-            :class="proxy.name === group.now ? 'rounded-full shadow' : ''"
-            class="w-12 h-12 rounded-4 flex items-center justify-center"
-            @click="useProxyWithCatchError(group, proxy)"
+            v-if="appSettings.app.kernel.cardMode"
+            :class="`grid-cols-${appSettings.app.kernel.cardColumns}`"
+            class="grid gap-8"
           >
-            <Icon v-if="isLoading(proxy.name)" icon="loading" :size="12" class="rotation" />
+            <Card
+              v-for="proxy in group.all.slice(0, pageMap[group.name] || 40)"
+              :key="proxy.name"
+              :title="proxy.name"
+              :selected="proxy.name === group.now"
+              class="cursor-pointer"
+              @click="useProxyWithCatchError(group, proxy)"
+            >
+              <Button
+                :style="{ color: delayColor(proxy.delay) }"
+                :loading="isLoading(proxy.name)"
+                type="text"
+                size="small"
+                style="margin-left: -2px; padding-left: 2px"
+                @click.stop="handleProxyDelay(proxy.name)"
+              >
+                <div class="text-12">
+                  {{ proxy.delay && proxy.delay + 'ms' }}
+                </div>
+              </Button>
+              <div class="text-12 my-2">{{ proxy.type }} {{ proxy.udp ? ':: udp' : '' }}</div>
+            </Card>
+          </div>
+          <div v-else class="grid grid-cols-32 gap-8">
+            <div
+              v-for="proxy in group.all.slice(0, pageMap[group.name] || 40)"
+              :key="proxy.name"
+              v-tips.fast="proxy.name"
+              :style="{ background: delayColor(proxy.delay) }"
+              :class="proxy.name === group.now ? 'rounded-full shadow' : ''"
+              class="w-12 h-12 rounded-4 flex items-center justify-center"
+              @click="useProxyWithCatchError(group, proxy)"
+            >
+              <Icon v-if="isLoading(proxy.name)" icon="loading" :size="12" class="rotation" />
+            </div>
+          </div>
+          <div
+            v-if="group.all.length > (pageMap[group.name] || 40)"
+            class="flex justify-center mt-8"
+          >
+            <Button type="primary" size="small" @click="loadMore(group.name)">
+              {{ t('common.more') }} ({{
+                group.all.length - (pageMap[group.name] || 40)
+              }})
+            </Button>
           </div>
         </div>
       </div>

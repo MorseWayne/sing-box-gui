@@ -1,0 +1,98 @@
+lang: en
+theme: auto
+color: green
+primaryColor: "#000"
+secondaryColor: "#545454"
+fontFamily: system-ui, "Microsoft YaHei UI", "Source Han Sans CN", "Twemoji
+  Mozilla", sans-serif
+profilesView: grid
+subscribesView: grid
+rulesetsView: grid
+pluginsView: grid
+scheduledtasksView: grid
+windowStartState: 2
+webviewGpuPolicy: 1
+width: 661
+height: 446
+exitOnClose: false
+closeKernelOnExit: false
+autoSetSystemProxy: true
+proxyBypassList: <local>;localhost;127.*;10.*;172.16.*;172.17.*;172.18.*;172.19.*;172.20.*;172.21.*;172.22.*;172.23.*;172.24.*;172.25.*;172.26.*;172.27.*;172.28.*;172.29.*;172.30.*;172.31.*;192.168.*
+autoStartKernel: true
+autoRestartKernel: true
+userAgent: ""
+startupDelay: 30
+connections:
+  visibility:
+    metadata.type: true
+    metadata.processPath: false
+    metadata.host: true
+    metadata.sourceIP: true
+    metadata.destinationIP: true
+    rule: true
+    chains: true
+    up: true
+    down: true
+    upload: true
+    download: true
+    start: true
+  order:
+    - metadata.type
+    - metadata.processPath
+    - metadata.host
+    - metadata.sourceIP
+    - metadata.destinationIP
+    - rule
+    - chains
+    - up
+    - down
+    - upload
+    - download
+    - start
+kernel:
+  realMemoryUsage: true
+  branch: main
+  profile: ID_50gtwrii
+  autoClose: true
+  unAvailable: true
+  cardMode: true
+  cardColumns: 5
+  sortByDelay: false
+  testUrl: https://www.gstatic.com/generate_204
+  concurrencyLimit: 20
+  controllerCloseMode: all
+  controllerSensitivity: 2
+  main:
+    env: {}
+    args:
+      - run
+      - --disable-color
+      - -c
+      - $APP_BASE_PATH/$CORE_BASE_PATH/config.json
+      - -D
+      - $APP_BASE_PATH/$CORE_BASE_PATH
+  alpha:
+    env: {}
+    args:
+      - run
+      - --disable-color
+      - -c
+      - $APP_BASE_PATH/$CORE_BASE_PATH/config.json
+      - -D
+      - $APP_BASE_PATH/$CORE_BASE_PATH
+pluginSettings: {}
+githubApiToken: ""
+multipleInstance: false
+addPluginToMenu: true
+addGroupToMenu: true
+rollingRelease: true
+debugOutline: false
+debugNoAnimation: false
+debugNoRounded: false
+debugBorder: false
+pages:
+  - Overview
+  - Profiles
+  - Subscriptions
+  - Rulesets
+  - Plugins
